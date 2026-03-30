@@ -1,17 +1,17 @@
-# Usar Java 17
-FROM eclipse-temurin:17-jdk
+# Usar Java 21
+FROM eclipse-temurin:21-jdk
 
-# Carpeta de trabajo
+# Crear carpeta de trabajo
 WORKDIR /app
 
 # Copiar todo el proyecto
 COPY . .
 
-# Dar permisos a Maven
+# Dar permisos a Maven Wrapper
 RUN chmod +x mvnw
 
 # Compilar el proyecto
 RUN ./mvnw clean package -DskipTests
 
-# Ejecutar el .jar
-CMD ["java", "-jar", "target/*.jar"]
+# Ejecutar el jar
+CMD ["java", "-jar", "target/alumnos-0.0.1-SNAPSHOT.jar"]
