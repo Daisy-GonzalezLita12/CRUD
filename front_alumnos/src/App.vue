@@ -115,7 +115,7 @@ const nuevoAlumno = ref({
 const editado = ref(false)
 const errores = ref({})
 
-const API = 'http://localhost:8080/alumnos'
+const API = 'https://formulario-hedp.onrender.com'
 
 // =====================
 // Cargar alumnos
