@@ -38,7 +38,7 @@
               <option value="Licenciatura en Contaduría">Licenciatura en Contaduría</option>
               <option value="Licenciatura en Administración">Licenciatura en Administración</option>
               <option value="Ingeniería en Mecatrónica">Ingeniería en Mecatrónica</option>
-              <option value="Ingeniería en Gestión Empresarial">Ingeniería en Gestión</option>
+              <option value="Ingeniería en Gestión Empresarial">Ingeniería en Gestión Empresarial</option>
             </select>
             <small class="text-danger" v-if="errores.carrera">{{ errores.carrera }}</small>
           </div>
@@ -67,6 +67,29 @@
     <div class="card shadow mt-4">
       <div class="card-body">
         <h5 class="card-title mb-3">Lista de Alumnos</h5>
+        <div class="row gy-2 mb-3">
+          <div class="col-md-8">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar por nombre o apellido"
+              v-model="searchQuery"
+            />
+          </div>
+
+          <div class="col-md-4">
+            <select class="form-select" v-model="filtroCarrera">
+              <option value="">Todas las carreras</option>
+              <option value="Ingeniería en Sistemas Computacionales">Ingeniería en Sistemas Computacionales</option>
+              <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+              <option value="Licenciatura en Contaduría">Licenciatura en Contaduría</option>
+              <option value="Licenciatura en Administración">Licenciatura en Administración</option>
+              <option value="Ingeniería en Mecatrónica">Ingeniería en Mecatrónica</option>
+              <option value="Ingeniería en Gestión Empresarial">Ingeniería en Gestión Empresarial</option>
+            </select>
+          </div>
+        </div>
+
         <table class="table table-hover align-middle">
           <thead class="table-light">
             <tr>
@@ -78,7 +101,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="alumno in alumnos" :key="alumno.id">
+            <tr v-for="alumno in alumnosPaginados" :key="alumno.id">
               
               <td>{{ alumno.nombre }}</td>
               <td>{{ alumno.apellido }}</td>
@@ -92,17 +115,70 @@
             </tr>
           </tbody>
         </table>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            Mostrando {{ paginaInicio + 1 }} - {{ paginaFin }} de {{ alumnosFiltrados.length }} registros
+          </div>
+          <div>
+            <button class="btn btn-outline-secondary me-2" @click="paginaAnterior" :disabled="currentPage === 0">Anterior</button>
+            <span>Página {{ currentPage + 1 }} / {{ totalPages }}</span>
+            <button class="btn btn-outline-secondary ms-2" @click="paginaSiguiente" :disabled="currentPage >= totalPages - 1">Siguiente</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
 const alumnos = ref([])
+const searchQuery = ref('')
+const filtroCarrera = ref('')
+const currentPage = ref(0)
+const rowsPerPage = ref(5)
+
+const alumnosFiltrados = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  const carreraFiltro = filtroCarrera.value
+
+  return alumnos.value.filter(alumno => {
+    const nombre = (alumno.nombre || '').toLowerCase()
+    const apellido = (alumno.apellido || '').toLowerCase()
+    const carrera = (alumno.carrera || '')
+
+    const coincideTexto = !q || nombre.includes(q) || apellido.includes(q)
+    const coincideCarrera = !carreraFiltro || carrera === carreraFiltro
+
+    return coincideTexto && coincideCarrera
+  })
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(alumnosFiltrados.value.length / rowsPerPage.value)))
+
+const alumnosPaginados = computed(() => {
+  const start = currentPage.value * rowsPerPage.value
+  return alumnosFiltrados.value.slice(start, start + rowsPerPage.value)
+})
+
+const paginaInicio = computed(() => currentPage.value * rowsPerPage.value)
+const paginaFin = computed(() => Math.min(alumnosFiltrados.value.length, (currentPage.value + 1) * rowsPerPage.value))
+
+const paginaAnterior = () => {
+  if (currentPage.value > 0) currentPage.value--
+}
+
+const paginaSiguiente = () => {
+  if (currentPage.value < totalPages.value - 1) currentPage.value++
+}
+
+watch(() => [searchQuery.value, filtroCarrera.value, alumnosFiltrados.value.length], () => {
+  currentPage.value = 0
+})
 
 const nuevoAlumno = ref({
   nombre: '',
@@ -115,7 +191,7 @@ const nuevoAlumno = ref({
 const editado = ref(false)
 const errores = ref({})
 
-const API = 'https://formulario-hedp.onrender.com'
+const API = 'https://formulario-hedp.onrender.com/alumnos'
 
 // =====================
 // Cargar alumnos
@@ -196,7 +272,7 @@ const agregarAlumno = async () => {
 }
 
 // =====================
-// Editar alumno
+// Editar alumnos
 // =====================
 const editarAlumnos = (alumno) => {
   Object.assign(nuevoAlumno.value, alumno)
