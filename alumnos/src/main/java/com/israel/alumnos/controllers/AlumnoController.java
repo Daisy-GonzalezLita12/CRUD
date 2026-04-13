@@ -41,14 +41,20 @@ public class AlumnoController {
 
     // Metodo para insertar un alumno en la base de datos
     @PostMapping("/insertar-alumnos")
-    public Alumno insertarAlumno(@RequestBody Alumno alumno) {
-        return alumnoRepository.save(alumno);
-
+    public ResponseEntity<?> insertarAlumno(@RequestBody Alumno alumno) {
+        if (alumnoRepository.existsByNombreIgnoreCaseAndApellidoIgnoreCase(alumno.getNombre(), alumno.getApellido())) {
+            return ResponseEntity.status(409).body("Ya existe un alumno con ese nombre y apellido");
+        }
+        Alumno guardado = alumnoRepository.save(alumno);
+        return ResponseEntity.ok(guardado);
     }
 
     // Metodo para editar un alumno en la base de datos
     @PutMapping("/editar-alumnos/{id}")
-    public ResponseEntity<Alumno> actualizarAlumno(@PathVariable Long id, @RequestBody Alumno alumno) {
+    public ResponseEntity<?> actualizarAlumno(@PathVariable Long id, @RequestBody Alumno alumno) {
+        if (alumnoRepository.existsByNombreIgnoreCaseAndApellidoIgnoreCaseAndIdNot(alumno.getNombre(), alumno.getApellido(), id)) {
+            return ResponseEntity.status(409).body("Ya existe un alumno con ese nombre y apellido");
+        }
         return alumnoRepository.findById(id).map(alumnoExistente -> {
             alumnoExistente.setNombre(alumno.getNombre());
             alumnoExistente.setApellido(alumno.getApellido());

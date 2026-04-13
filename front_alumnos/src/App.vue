@@ -1,37 +1,76 @@
 <template>
-  <div class="container" style="max-width:900px">
-    <!-- Formulario -->
+
+  <!-- LOGIN -->
+  <div v-if="vista === 'login'" class="container mt-5" style="max-width:400px">
+    <div class="card shadow p-4">
+      <h3 class="text-center mb-3">Iniciar Sesión</h3>
+
+      <input type="text" class="form-control mb-2" placeholder="Usuario" maxlength="8" v-model="usuario">
+      <small class="text-danger" v-if="erroresLogin.user">{{ erroresLogin.user }}</small>
+      <input type="password" class="form-control mb-3" placeholder="Contraseña" maxlength="8" v-model="password">
+      <small class="text-danger" v-if="erroresLogin.pass">{{ erroresLogin.pass }}</small>
+
+      <button class="btn btn-primary w-100 mb-2" @click="login">Ingresar</button>
+
+      <button class="btn btn-outline-secondary w-100" @click="vista = 'registro'">
+        Crear cuenta
+      </button>
+    </div>
+  </div>
+
+  <!-- REGISTRO -->
+  <div v-if="vista === 'registro'" class="container mt-5" style="max-width:400px">
+    <div class="card shadow p-4">
+      <h3 class="text-center mb-3">Crear Usuario</h3>
+
+      <input type="text" class="form-control mb-2" placeholder="Nuevo usuario" maxlength="8" v-model="nuevoUsuario.user">
+      <div class="form-text mb-2">Usuario entre 4 y 8 caracteres.</div>
+      <small class="text-danger" v-if="erroresRegistro.user">{{ erroresRegistro.user }}</small>
+
+      <input type="password" class="form-control mb-2" placeholder="Nueva contraseña" maxlength="8" v-model="nuevoUsuario.pass">
+      <div class="form-text mb-2">La contraseña debe tener entre 4 y 8 caracteres.</div>
+      <small class="text-danger" v-if="erroresRegistro.pass">{{ erroresRegistro.pass }}</small>
+
+      <button class="btn btn-success w-100 mb-2" @click="registrar">
+        Registrarse
+      </button>
+
+      <button class="btn btn-outline-secondary w-100" @click="vista = 'login'">
+        Volver al login
+      </button>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div v-if="vista === 'app'" class="container" style="max-width:900px">
+
+    <!-- LOGOUT -->
+    <div class="d-flex justify-content-end mt-3">
+      <button class="btn btn-danger" @click="logout">Cerrar sesión</button>
+    </div>
+
     <div class="card shadow p-3 mt-4">
       <h2 class="text-center mb-3">Formulario de Alumnos</h2>
       <form @submit.prevent="agregarAlumno">
         <div class="row g-2">
-
           <!-- Nombre -->
           <div class="col-md-6">
             <label class="form-label">Nombre</label>
-            <input type="text"
-                   class="form-control"
-                   :class="{ 'is-invalid': errores.nombre }"
-                   v-model="nuevoAlumno.nombre">
+            <input type="text" class="form-control" :class="{ 'is-invalid': errores.nombre }" v-model="nuevoAlumno.nombre">
             <small class="text-danger" v-if="errores.nombre">{{ errores.nombre }}</small>
           </div>
 
           <!-- Apellidos -->
           <div class="col-md-6">
             <label class="form-label">Apellidos</label>
-            <input type="text"
-                   class="form-control"
-                   :class="{ 'is-invalid': errores.apellido }"
-                   v-model="nuevoAlumno.apellido">
+            <input type="text" class="form-control" :class="{ 'is-invalid': errores.apellido }" v-model="nuevoAlumno.apellido">
             <small class="text-danger" v-if="errores.apellido">{{ errores.apellido }}</small>
           </div>
 
           <!-- Carrera -->
           <div class="col-md-6">
             <label class="form-label">Carrera</label>
-            <select class="form-select"
-                    :class="{ 'is-invalid': errores.carrera }"
-                    v-model="nuevoAlumno.carrera">
+            <select class="form-select" :class="{ 'is-invalid': errores.carrera }" v-model="nuevoAlumno.carrera">
               <option value="" disabled>Seleccione una carrera</option>
               <option value="Ingeniería en Sistemas Computacionales">Ingeniería en Sistemas Computacionales</option>
               <option value="Ingeniería Industrial">Ingeniería Industrial</option>
@@ -43,23 +82,14 @@
             <small class="text-danger" v-if="errores.carrera">{{ errores.carrera }}</small>
           </div>
 
-         <!-- Teléfono -->
-<div class="col-md-6">
-  <label class="form-label">Teléfono</label>
-  <input type="text"
-         class="form-control"
-         :class="{ 'is-invalid': errores.telefono }"
-         v-model="nuevoAlumno.telefono"
-         maxlength="12"          
-         @input="nuevoAlumno.telefono = nuevoAlumno.telefono.replace(/\D/g,'').slice(0,12)">
-  <small class="text-danger" v-if="errores.telefono">{{ errores.telefono }}</small>
-</div>
-
-                </div>
-
-        <button type="submit" class="btn btn-primary mt-3 w-100">
-          {{ editado ? 'Actualizar Alumno' : 'Agregar Alumno' }}
-        </button>
+          <!-- Teléfono -->
+          <div class="col-md-6">
+            <label class="form-label">Teléfono</label>
+            <input type="text" class="form-control" :class="{ 'is-invalid': errores.telefono }" v-model="nuevoAlumno.telefono" maxlength="12" @input="nuevoAlumno.telefono = nuevoAlumno.telefono.replace(/\D/g,'').slice(0,12)">
+            <small class="text-danger" v-if="errores.telefono">{{ errores.telefono }}</small>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3 w-100"> {{ editado ? 'Actualizar Alumno' : 'Agregar Alumno' }} </button>
       </form>
     </div>
 
@@ -69,14 +99,8 @@
         <h5 class="card-title mb-3">Lista de Alumnos</h5>
         <div class="row gy-2 mb-3">
           <div class="col-md-8">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Buscar por nombre o apellido"
-              v-model="searchQuery"
-            />
+            <input type="text" class="form-control" placeholder="Buscar por nombre o apellido" v-model="searchQuery" />
           </div>
-
           <div class="col-md-4">
             <select class="form-select" v-model="filtroCarrera">
               <option value="">Todas las carreras</option>
@@ -89,7 +113,6 @@
             </select>
           </div>
         </div>
-
         <table class="table table-hover align-middle">
           <thead class="table-light">
             <tr>
@@ -102,12 +125,10 @@
           </thead>
           <tbody>
             <tr v-for="alumno in alumnosPaginados" :key="alumno.id">
-              
               <td>{{ alumno.nombre }}</td>
               <td>{{ alumno.apellido }}</td>
               <td>{{ alumno.carrera }}</td>
               <td>{{ formatTelefono(alumno.telefono) }}</td>
-             
               <td>
                 <button @click="editarAlumnos(alumno)" class="btn btn-warning mx-1">✏</button>
                 <button @click="eliminarAlumno(alumno.id)" class="btn btn-danger mx-1">🗑</button>
@@ -115,11 +136,8 @@
             </tr>
           </tbody>
         </table>
-
         <div class="d-flex justify-content-between align-items-center mt-3">
-          <div>
-            Mostrando {{ paginaInicio + 1 }} - {{ paginaFin }} de {{ alumnosFiltrados.length }} registros
-          </div>
+          <div> Mostrando {{ paginaInicio + 1 }} - {{ paginaFin }} de {{ alumnosFiltrados.length }} registros </div>
           <div>
             <button class="btn btn-outline-secondary me-2" @click="paginaAnterior" :disabled="currentPage === 0">Anterior</button>
             <span>Página {{ currentPage + 1 }} / {{ totalPages }}</span>
@@ -129,6 +147,7 @@
       </div>
     </div>
   </div>
+
 </template>
 
 <script setup>
@@ -141,7 +160,16 @@ const searchQuery = ref('')
 const filtroCarrera = ref('')
 const currentPage = ref(0)
 const rowsPerPage = ref(5)
+const vista = ref('login') // login | registro | app
 
+const usuario = ref('')
+const password = ref('')
+
+// registro
+const nuevoUsuario = ref({
+  user: '',
+  pass: ''
+})
 const alumnosFiltrados = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   const carreraFiltro = filtroCarrera.value
@@ -190,6 +218,8 @@ const nuevoAlumno = ref({
 
 const editado = ref(false)
 const errores = ref({})
+const erroresRegistro = ref({})
+const erroresLogin = ref({})
 
 const API = 'https://formulario-hedp.onrender.com/alumnos'
 
@@ -208,19 +238,29 @@ const cargarAlumnos = async () => {
 // =====================
 // Validación
 // =====================
+const nombreApellidoUnico = (alumno) => {
+  const nombre = (alumno.nombre || '').trim().toLowerCase()
+  const apellido = (alumno.apellido || '').trim().toLowerCase()
+
+  return !alumnos.value.some(existing => {
+    if (editado.value && existing.id === alumno.id) return false
+    return existing.nombre.trim().toLowerCase() === nombre && existing.apellido.trim().toLowerCase() === apellido
+  })
+}
+
 const validarFormulario = () => {
   errores.value = {}
 
   if (!nuevoAlumno.value.nombre.trim()) {
     errores.value.nombre = "El campo es obligatorio"
   } else if (!/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$/.test(nuevoAlumno.value.nombre)) {
-  errores.value.nombre = "Debe iniciar con mayúscula y solo contener letras"
-}
+    errores.value.nombre = "Debe iniciar con mayúscula y solo contener letras"
+  }
   if (!nuevoAlumno.value.apellido.trim()) {
     errores.value.apellido = "El campo es obligatorio"
   } else if (!/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+$/.test(nuevoAlumno.value.apellido)) {
-  errores.value.apellido = "Cada apellido debe iniciar con mayúscula y solo contener letras"
-}
+    errores.value.apellido = "Cada apellido debe iniciar con mayúscula y solo contener letras"
+  }
 
   if (!nuevoAlumno.value.carrera.trim()) {
     errores.value.carrera = "El campo es obligatorio"
@@ -230,7 +270,10 @@ const validarFormulario = () => {
     errores.value.telefono = "El teléfono debe incluir lada de México y 10 dígitos"
   }
 
- 
+  if (Object.keys(errores.value).length === 0 && !nombreApellidoUnico(nuevoAlumno.value)) {
+    errores.value.nombre = 'Ya existe un alumno con el mismo nombre y apellido'
+  }
+
   return Object.keys(errores.value).length === 0
 }
 
@@ -267,6 +310,10 @@ const agregarAlumno = async () => {
     errores.value = {}
 
   } catch (error) {
+    if (error.response?.status === 409) {
+      Swal.fire({ icon: 'error', title: 'Error', text: error.response.data || 'Ya existe un alumno con ese nombre y apellido' })
+      return
+    }
     Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un problema al guardar' })
   }
 }
@@ -314,7 +361,112 @@ const formatTelefono = (num) => {
   return '+52 ' + n.slice(0,3) + ' ' + n.slice(3,6) + ' ' + n.slice(6,10)
 }
 
-onMounted(cargarAlumnos)
+
+
+const obtenerUsuarios = () => JSON.parse(localStorage.getItem('users') || '[]')
+
+const validarRegistro = () => {
+  erroresRegistro.value = {}
+  const user = nuevoUsuario.value.user.trim()
+  const pass = nuevoUsuario.value.pass.trim()
+
+  if (!user) {
+    erroresRegistro.value.user = 'El usuario es obligatorio'
+  } else if (user.length < 4) {
+    erroresRegistro.value.user = 'El usuario debe tener al menos 4 caracteres'
+  } else if (user.length > 8) {
+    erroresRegistro.value.user = 'El usuario debe tener como máximo 8 caracteres'
+  }
+
+  if (!pass) {
+    erroresRegistro.value.pass = 'La contraseña es obligatoria'
+  } else if (pass.length < 4) {
+    erroresRegistro.value.pass = 'La contraseña debe tener al menos 4 caracteres'
+  } else if (pass.length > 8) {
+    erroresRegistro.value.pass = 'La contraseña debe tener como máximo 8 caracteres'
+  }
+
+  return Object.keys(erroresRegistro.value).length === 0
+}
+
+const validarLogin = () => {
+  erroresLogin.value = {}
+  const user = usuario.value.trim()
+  const pass = password.value.trim()
+
+  if (!user) {
+    erroresLogin.value.user = 'El usuario es obligatorio'
+  } else if (user.length < 4) {
+    erroresLogin.value.user = 'El usuario debe tener al menos 4 caracteres'
+  } else if (user.length > 8) {
+    erroresLogin.value.user = 'El usuario debe tener como máximo 8 caracteres'
+  }
+
+  if (!pass) {
+    erroresLogin.value.pass = 'La contraseña es obligatoria'
+  } else if (pass.length < 4) {
+    erroresLogin.value.pass = 'La contraseña debe tener al menos 4 caracteres'
+  } else if (pass.length > 8) {
+    erroresLogin.value.pass = 'La contraseña debe tener como máximo 8 caracteres'
+  }
+
+  return Object.keys(erroresLogin.value).length === 0
+}
+
+const registrar = () => {
+  if (!validarRegistro()) {
+    return
+  }
+
+  const user = nuevoUsuario.value.user.trim()
+  const pass = nuevoUsuario.value.pass.trim()
+
+  const users = obtenerUsuarios()
+  if (users.some(u => u.user.toLowerCase() === user.toLowerCase())) {
+    erroresRegistro.value.user = 'El usuario ya existe'
+    return
+  }
+
+  users.push({ user, pass })
+  localStorage.setItem('users', JSON.stringify(users))
+
+  Swal.fire({ icon: 'success', title: 'Cuenta creada', text: 'Ahora puedes iniciar sesión', showConfirmButton: false, timer: 1500 })
+  nuevoUsuario.value.user = ''
+  nuevoUsuario.value.pass = ''
+  erroresRegistro.value = {}
+  vista.value = 'login'
+}
+
+const logout = () => {
+  localStorage.removeItem('auth')
+  vista.value = 'login'
+  usuario.value = ''
+  password.value = ''
+}
+
+const login = () => {
+  if (!validarLogin()) {
+    return
+  }
+
+  const users = obtenerUsuarios()
+  const usuarioValido = users.find(u => u.user === usuario.value && u.pass === password.value)
+
+  if (usuarioValido) {
+    vista.value = 'app'
+    localStorage.setItem('auth', 'true')
+    cargarAlumnos()
+  } else {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Credenciales incorrectas o usuario no registrado' })
+  }
+}
+
+onMounted(() => {
+  if (localStorage.getItem('auth') === 'true') {
+    vista.value = 'app'
+    cargarAlumnos()
+  }
+})
 </script>
 
 <style scoped>
